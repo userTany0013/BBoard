@@ -1,0 +1,17 @@
+{% extends 'flatpages/default.html' %}
+
+
+{% block title %}Пост{% endblock %}
+{% block content %}
+<h1>{{ post.heading}}</h1>
+<h3>{{ post.category}}</h3>
+<h5>{{ post.text}}</h5>
+<hr>
+
+{% for res in responses %}
+<hr>
+<h3>{{ res.text }}</h3>
+<hr>
+{% endfor %}
+
+{% endblock content %}

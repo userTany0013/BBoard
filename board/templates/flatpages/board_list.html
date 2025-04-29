@@ -1,0 +1,14 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+{% endblock %}
+
+{% block content %}
+{% for post in posts %}
+<hr>
+<a href="{{ post.id }}/"><h3>{{ post.heading }}</h3></a>
+<h3>{{ post.category }}</h3>
+<h3>{{ post.text }}</h3>
+<hr>
+{% endfor %}
+{% endblock %}
