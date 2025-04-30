@@ -1,10 +1,12 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 
-from .forms import LoginForm, RegisterForm, PostForm, ResponsesForm
+from .forms import LoginForm, RegisterForm, PostForm, ResponsesForm, ResponsesStatusForm
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 
 from .models import Posts, Responses
@@ -18,11 +20,19 @@ class BBPosts(ListView):
     context_object_name = 'posts'
 
 
-class PostCreate(PermissionRequiredMixin, CreateView):
+class Private(PermissionRequiredMixin, ListView):
+    model = Responses
+    template_name = 'flatpages/private.html'
+    permission_required = ()
+    context_object_name = 'responses'
+
+
+@method_decorator(login_required, name='dispatch')
+class PostCreate(LoginRequiredMixin, CreateView):
     form_class = PostForm
     model = Posts
     template_name = 'flatpages/add.html'
-    permission_required = ()
+
     success_url = reverse_lazy('bbposts_list')
 
     def form_valid(self, form):
@@ -32,6 +42,7 @@ class PostCreate(PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+@method_decorator(login_required, name='dispatch')
 class ResponsesCreate(PermissionRequiredMixin, CreateView):
     form_class = ResponsesForm
     model = Responses
@@ -48,6 +59,7 @@ class ResponsesCreate(PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+@method_decorator(login_required, name='dispatch')
 class PostUpdate(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
     form_class = PostForm
     model = Posts
@@ -61,38 +73,41 @@ class PostDetail(DetailView):
     template_name = 'flatpages/board_detail.html'
     context_object_name = 'post'
 
+
+class ResList(ListView):
+    model = Responses
+    template_name = 'flatpages/res_list.html'
+    context_object_name = 'responses'
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        post_id = self.request.path[-2]
-        context['responses'] = Responses.objects.filter(post=post_id)
+        context['res_list'] = Responses.objects.filter(post=Posts.objects.get(id=self.request.path[-2]))
+        return context
 
 
-def login_view(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('bbposts_list')
-    else:
-        form = LoginForm()
-    return render(request, 'flatpages/login.html', {'form': form})
+@method_decorator(login_required, name='dispatch')
+class PrivateList(ListView):
+    model = User
+    template_name = 'flatpages/private.html'
+    context_object_name = 'users'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = User.objects.get(id=self.request.user.pk)
+        context['user'] = user
+        post_list = Posts.objects.filter(user=user)
+        context['post_list'] = post_list
+        res_list = []
+        for post in post_list:
+            res_list.append(post.responses.all())
+        context['res_list'] = res_list
+        return context
 
 
-def register_view(request):
-    if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = RegisterForm()
-    return render(request, 'flatpages/register.html', {'form': form})
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+@method_decorator(login_required, name='dispatch')
+class ResUpdate(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
+    form_class = ResponsesStatusForm
+    model = Posts
+    template_name = 'flatpages/add.html'
+    permission_required = ()
+    success_url = reverse_lazy('private')

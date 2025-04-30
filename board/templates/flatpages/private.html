@@ -1,0 +1,17 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+{% endblock %}
+
+{% block content %}
+<hr>
+{% for quer in res_list %}
+    {% for res in quer %}
+        <h1>{{ res.text }}</h1>
+        <h3><a href="/bulletin_board/{{ res.post.id }}">Запись</a></h3>
+        <a href="/bulletin_board/status_res/{{ res.post.id }}">Статус</a>
+            {% csrf_token %}
+    {% endfor %}
+{% endfor %}
+<hr>
+{% endblock %}

@@ -28,3 +28,9 @@ class ResponsesForm(forms.ModelForm):
     class Meta:
         model = Responses
         fields = ['text',]
+
+
+class ResponsesStatusForm(forms.ModelForm):
+    class Meta:
+        model = Responses
+        fields = ['status',]

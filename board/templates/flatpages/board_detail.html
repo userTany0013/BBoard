@@ -8,10 +8,6 @@
 <h5>{{ post.text}}</h5>
 <hr>
 
-{% for res in responses %}
-<hr>
-<h3>{{ res.text }}</h3>
-<hr>
-{% endfor %}
+<a href="/bulletin_board/responses/{{ post.pk }}">Отклики</a>
 
 {% endblock content %}

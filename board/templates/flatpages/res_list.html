@@ -1,0 +1,12 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+{% endblock %}
+
+{% block content %}
+{% for res in res_list %}
+<hr>
+<h3>{{ res.text }}</h3>
+<hr>
+{% endfor %}
+{% endblock %}
