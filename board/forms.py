@@ -5,11 +5,6 @@ from django.contrib.auth.models import User
 from .models import Posts, Responses
 
 
-class LoginForm(forms.Form):
-    username = forms.CharField(label='Username')
-    password = forms.CharField(label='Password', widget=forms.PasswordInput)
-
-
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
 

@@ -5,6 +5,11 @@
 
 {% block content %}
 <hr>
+<form action="" method="get">
+    {{ filterset.form.as_p }}
+    <input type="submit" value="Найти" />
+</form>
+<hr>
 {% for quer in res_list %}
     {% for res in quer %}
         <h1>{{ res.text }}</h1>

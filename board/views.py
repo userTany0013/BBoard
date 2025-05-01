@@ -6,7 +6,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 
-from .forms import LoginForm, RegisterForm, PostForm, ResponsesForm, ResponsesStatusForm
+from .filters import ResponsesFilter
+from .forms import RegisterForm, PostForm, ResponsesForm, ResponsesStatusForm
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 
 from .models import Posts, Responses
@@ -18,13 +19,6 @@ class BBPosts(ListView):
     model = Posts
     template_name = 'flatpages/board_list.html'
     context_object_name = 'posts'
-
-
-class Private(PermissionRequiredMixin, ListView):
-    model = Responses
-    template_name = 'flatpages/private.html'
-    permission_required = ()
-    context_object_name = 'responses'
 
 
 @method_decorator(login_required, name='dispatch')
@@ -87,9 +81,9 @@ class ResList(ListView):
 
 @method_decorator(login_required, name='dispatch')
 class PrivateList(ListView):
-    model = User
+    model = Responses
     template_name = 'flatpages/private.html'
-    context_object_name = 'users'
+    context_object_name = 'res'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -101,7 +95,13 @@ class PrivateList(ListView):
         for post in post_list:
             res_list.append(post.responses.all())
         context['res_list'] = res_list
+        context['filterset'] = self.filterset
         return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        self.filterset = ResponsesFilter(self.request.GET, queryset)
+        return self.filterset.qs
 
 
 @method_decorator(login_required, name='dispatch')
